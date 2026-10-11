@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hai AI cùng giải quyết vấn đề</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef2f6;
+    --surface: #ffffff;
+    --ink: #14213d;
+    --muted: #5b6b82;
+    --line: #d5dde8;
+    --a: #0f766e;
+    --a-bg: #e1f4f1;
+    --b: #b45309;
+    --b-bg: #fdf0dc;
+    --final-bg: #14213d;
+    --final-ink: #f4f7fb;
+    --btn: #14213d;
+    --btn-ink: #ffffff;
+    --danger: #b42318;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d1420; --surface: #16202f; --ink: #e8eef7; --muted: #92a2b8; --line: #2a374a;
+      --a: #5eead4; --a-bg: #11302d; --b: #fbbf24; --b-bg: #33270f;
+      --final-bg: #e8eef7; --final-ink: #0d1420; --btn: #e8eef7; --btn-ink: #0d1420; --danger: #f97066;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1420; --surface: #16202f; --ink: #e8eef7; --muted: #92a2b8; --line: #2a374a;
+    --a: #5eead4; --a-bg: #11302d; --b: #fbbf24; --b-bg: #33270f;
+    --final-bg: #e8eef7; --final-ink: #0d1420; --btn: #e8eef7; --btn-ink: #0d1420; --danger: #f97066;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-text-size-adjust: 100%;
+  }
+  main { max-width: 640px; margin: 0 auto; padding: 20px 16px 48px; }
+  h1 { font-size: 1.45rem; line-height: 1.25; margin: 8px 0 6px; font-weight: 700; }
+  .lead { color: var(--muted); margin: 0 0 20px; font-size: 0.95rem; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  label { display: block; font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; }
+  textarea {
+    width: 100%; font: inherit; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px; padding: 12px; resize: vertical;
+  }
+  #problem { min-height: 130px; }
+  .qitem { margin-top: 16px; }
+  .qitem textarea { min-height: 64px; }
+  .understood { background: var(--bg); border-radius: 10px; padding: 12px; font-size: 0.92rem; }
+  .understood b { display: block; margin-bottom: 2px; }
+  .hint { color: var(--muted); font-size: 0.85rem; margin: 0 0 6px; }
+  textarea:focus-visible, button:focus-visible { outline: 3px solid var(--a); outline-offset: 2px; }
+  button {
+    font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 12px 18px;
+    background: var(--btn); color: var(--btn-ink); cursor: pointer; min-height: 46px;
+  }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  button.ghost { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .actions button { flex: 1 1 140px; }
+  #status { margin: 14px 2px 0; font-size: 0.9rem; color: var(--muted); min-height: 1.4em; }
+  #status.error { color: var(--danger); }
+  #log { margin-top: 4px; display: flex; flex-direction: column; gap: 12px; }
+  .msg { border-radius: 14px; padding: 12px 14px; border-left: 5px solid; }
+  .msg.a { background: var(--a-bg); border-color: var(--a); }
+  .msg.b { background: var(--b-bg); border-color: var(--b); }
+  .msg.problem { background: var(--surface); border-color: var(--muted); border-top: 1px solid var(--line); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .who { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+  .msg.a .who { color: var(--a); }
+  .msg.b .who { color: var(--b); }
+  .msg.problem .who { color: var(--muted); }
+  .body { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .msg.final { background: var(--final-bg); color: var(--final-ink); border-color: var(--final-ink); }
+  .msg.final .who { color: var(--final-ink); }
+  .note { text-align: center; color: var(--muted); font-size: 0.88rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Hai AI cùng giải quyết vấn đề</h1>
+  <p class="lead">Bạn mô tả vấn đề, Claude hỏi thêm những gì còn thiếu. Sau đó AI A đề xuất, AI B phản biện, hai bên trao đổi cho đến khi AI B không còn tìm ra vấn đề nào.</p>
+
+  <section class="panel" id="inputPanel">
+    <label for="problem">Vấn đề của bạn</label>
+    <textarea id="problem" placeholder="Ví dụ: Tôi muốn tiết kiệm 100 triệu trong 1 năm với lương 15 triệu mỗi tháng. Nên làm thế nào?"></textarea>
+    <div class="actions">
+      <button id="analyze" type="button" disabled>Phân tích và hỏi thêm</button>
+      <button id="skip" type="button" class="secondary" disabled>Chạy luôn, không hỏi thêm</button>
+    </div>
+  </section>
+
+  <section class="panel" id="qPanel" hidden>
+    <div class="understood" id="understood"></div>
+    <div id="questions"></div>
+    <div class="actions">
+      <button id="go" type="button">Bắt đầu thảo luận</button>
+      <button id="back" type="button" class="secondary">Sửa lại vấn đề</button>
+    </div>
+  </section>
+
+  <section id="log"></section>
+
+  <div id="status" role="status" aria-live="polite">Đang kết nối với Claude...</div>
+
+  <div class="actions" id="runBar"><button id="stop" type="button" class="ghost" hidden>Dừng</button></div>
+  <div class="actions" id="pauseBar" hidden>
+    <button id="more" type="button">Tiếp tục thảo luận</button>
+    <button id="conclude" type="button" class="secondary">Kết luận ngay</button>
+  </div>
+  <div class="actions" id="doneBar" hidden><button id="reset" type="button">Làm vấn đề mới</button></div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var problemEl = $("problem"), analyzeBtn = $("analyze"), skipBtn = $("skip"),
+      inputPanel = $("inputPanel"), qPanel = $("qPanel"), understoodEl = $("understood"),
+      questionsEl = $("questions"), goBtn = $("go"), backBtn = $("back"),
+      logEl = $("log"), statusEl = $("status"), stopBtn = $("stop"),
+      pauseBar = $("pauseBar"), moreBtn = $("more"), concludeBtn = $("conclude"),
+      doneBar = $("doneBar"), resetBtn = $("reset");
+
+  var sample = null, ctl = null;
+  var S = { problem: "", transcript: [], concluded: false };
+  var qFields = [], summaryText = "";
+
+  // Giới hạn an toàn để không tốn lượt dùng vô hạn. Hết giới hạn thì dừng chờ người dùng quyết định.
+  var INITIAL_TURNS = 10;      // 5 vòng đầu
+  var MORE_TURNS = 6;          // mỗi lần bấm Tiếp tục thêm 3 vòng
+  var MIN_ROUND_TO_AGREE = 2;  // vòng 1 chưa được kết thúc, buộc phải qua ít nhất 1 lần sửa
+  var WAIT = "Đang suy nghĩ sâu...";
+  var NAMES = { A: "AI A, người đề xuất", B: "AI B, người phản biện" };
+
+  var ERR = {
+    not_granted: "Bạn chưa cho phép trang này dùng Claude. Tải lại trang và chọn Cho phép.",
+    sampling_disabled: "Tài khoản của bạn hiện chưa dùng được tính năng này.",
+    rate_limited: "Đã chạm giới hạn sử dụng. Đợi một lúc rồi bấm Tiếp tục.",
+    session_expired: "Phiên đăng nhập hết hạn. Hãy đăng nhập lại Claude rồi thử lại.",
+    refused: "Claude từ chối nội dung này. Hãy sửa lại cách mô tả vấn đề.",
+    empty_completion: "Claude không trả lời được. Hãy thử lại hoặc mô tả vấn đề rõ hơn.",
+    prompt_too_large: "Cuộc trao đổi đã quá dài. Hãy bấm Kết luận ngay hoặc làm vấn đề mới.",
+    upstream_error: "Kết nối bị gián đoạn. Bấm lại để thử tiếp."
+  };
+
+  function setStatus(text, isError) {
+    statusEl.textContent = text;
+    statusEl.className = isError ? "error" : "";
+  }
+  function clean(t) { return String(t || "").replace(/\[ĐỒNG Ý\]/gi, "").trim(); }
+  function whoOf(n) { return n % 2 === 0 ? "A" : "B"; }
+  function roundOf(n) { return Math.floor(n / 2) + 1; }
+
+  function setBusy(on) {
+    analyzeBtn.disabled = on || !sample;
+    skipBtn.disabled = on || !sample;
+    goBtn.disabled = on;
+    backBtn.disabled = on;
+    moreBtn.disabled = on;
+    concludeBtn.disabled = on;
+    problemEl.disabled = on;
+    qFields.forEach(function (f) { f.ta.disabled = on; });
+    stopBtn.hidden = !on;
+  }
+
+  function addMsg(cls, who, initial) {
+    var box = document.createElement("div");
+    box.className = "msg " + cls;
+    var w = document.createElement("div");
+    w.className = "who";
+    w.textContent = who;
+    var b = document.createElement("div");
+    b.className = "body";
+    b.textContent = initial === undefined ? WAIT : initial;
+    box.appendChild(w);
+    box.appendChild(b);
+    logEl.appendChild(box);
+    box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    return { box: box, body: b };
+  }
+
+  function addNote(text) {
+    var n = document.createElement("div");
+    n.className = "note";
+    n.textContent = text;
+    logEl.appendChild(n);
+  }
+
+  function showPause() {
+    if (S.concluded) { pauseBar.hidden = true; return; }
+    if (S.transcript.length === 0) {
+      // chưa có gì để tiếp tục: quay lại ô nhập
+      logEl.textContent = "";
+      pauseBar.hidden = true;
+      inputPanel.hidden = false;
+      return;
+    }
+    pauseBar.hidden = false;
+  }
+
+  function handleFail(e, m, keepPartial) {
+    if (m && m.box && m.box.parentNode) {
+      var partial = e && e.text && e.code !== "cancelled" ? clean(e.text) : "";
+      if (keepPartial && partial) m.body.textContent = partial + "\n(bị gián đoạn)";
+      else m.box.remove();
+    }
+    if (e && e.code === "cancelled") setStatus("Đã dừng.");
+    else setStatus(ERR[e && e.code] || ERR.upstream_error, true);
+  }
+
+  // ---------- Lời nhắc ----------
+  var RULES = "Quy tắc chung: viết tiếng Việt tự nhiên, không dùng tiêu đề hay định dạng markdown (được dùng gạch đầu dòng bằng dấu - hoặc đánh số 1. 2. 3.). " +
+    "Suy luận cẩn thận từng bước trước khi trả lời. Nếu có con số, tính lại và kiểm tra. Không bịa dữ kiện: điều gì chưa chắc thì nói rõ là chưa chắc. " +
+    "Không khen xã giao, không lặp lại ý đã nói. Mỗi lượt khoảng 200 đến 300 từ.";
+
+  function transcriptText(transcript) {
+    return transcript.map(function (m) { return "[Vòng " + m.round + "] " + NAMES[m.who] + ":\n" + m.text; }).join("\n\n");
+  }
+
+  function buildClarifyPrompt(problem) {
+    return "Bạn là chuyên gia tư vấn dày dạn. Người dùng sắp nhờ hai AI cùng thảo luận để giải quyết vấn đề dưới đây. " +
+      "Việc của bạn là tìm những thông tin còn thiếu, mà nếu không biết thì lời giải sẽ chung chung hoặc sai.\n\n" +
+      "VẤN ĐỀ:\n" + problem + "\n\n" +
+      "Yêu cầu:\n" +
+      "- Tóm tắt trong 1 đến 2 câu bạn hiểu vấn đề là gì và mục tiêu thật sự của người dùng.\n" +
+      "- Đặt tối đa 5 câu hỏi làm rõ, xếp theo mức quan trọng giảm dần. Mỗi câu hỏi một ý, ngắn, cụ thể, trả lời nhanh được trên điện thoại. " +
+      "Không hỏi điều đã có trong mô tả. Không hỏi điều không ảnh hưởng đến lời giải.\n" +
+      "- Mỗi câu hỏi kèm một gợi ý trả lời mẫu rất ngắn.\n" +
+      "- Nếu vấn đề đã đủ rõ để giải, trả về mảng questions rỗng.\n" +
+      "- Viết bằng tiếng Việt.\n\n" +
+      "Chỉ trả về JSON đúng dạng sau, không thêm chữ nào khác:\n" +
+      "{\"summary\": \"...\", \"questions\": [{\"q\": \"...\", \"hint\": \"...\"}]}";
+  }
+
+  function buildPrompt(who, problem, transcript, round, allowAgree) {
+    var base = "Hai chuyên gia AI đang trao đổi với nhau để giải quyết một vấn đề thật của người dùng. Mục tiêu là ra được kết quả đúng, thực tế, dùng được ngay.\n\n" +
+      "VẤN ĐỀ CỦA NGƯỜI DÙNG:\n" + problem + "\n\n";
+    var history = transcript.length ? "CUỘC TRAO ĐỔI TỪ ĐẦU ĐẾN GIỜ:\n" + transcriptText(transcript) + "\n\n" : "";
+    var task;
+    if (who === "A") {
+      task = transcript.length === 0
+        ? "Bạn là AI A, người đề xuất. Trước hết nêu ngắn gọn bạn hiểu vấn đề là gì và những giả định bạn đang dùng (nếu thiếu thông tin thì chọn giả định hợp lý nhất và nói rõ). Sau đó đưa ra giải pháp đầy đủ, cụ thể, có các bước làm."
+        : "Bạn là AI A, người đề xuất. Đọc kỹ phản biện gần nhất của AI B. Với từng vấn đề B nêu (theo số thứ tự): nếu B đúng thì sửa và nói rõ đã sửa gì; nếu B sai thì phản bác có lý lẽ, đừng nhượng bộ chỉ để cho êm. Sau đó viết lại phiên bản giải pháp đầy đủ đã cải thiện, không chỉ liệt kê chỗ sửa.";
+    } else {
+      task = "Bạn là AI B, người phản biện nghiêm khắc nhưng công bằng. " +
+        (round === 1
+          ? "Đây là lần kiểm tra đầu tiên: hãy đào sâu, tìm sai logic, thiếu bước, số liệu không khớp, rủi ro bị bỏ sót, giả định không hợp lý. "
+          : "Đây là vòng " + round + ". Trước hết kiểm tra xem các vấn đề đã nêu ở vòng trước đã được xử lý thật sự chưa (không chấp nhận chỉ nói là đã sửa), rồi tìm thêm vấn đề mới. ") +
+        "Liệt kê các vấn đề còn lại theo số thứ tự 1. 2. 3., mỗi vấn đề kèm cách sửa cụ thể. Điểm nào đã ổn thì xác nhận ngắn gọn. Chỉ nêu vấn đề có thật, không bịa lỗi để có cái nói." +
+        (allowAgree
+          ? " Chỉ khi bạn đã kiểm tra kỹ và thật sự không còn vấn đề đáng kể nào, hãy viết 'Không còn vấn đề đáng kể', nêu ngắn gọn bạn đã kiểm tra những gì, rồi kết thúc bằng đúng cụm [ĐỒNG Ý]. Còn bất kỳ vấn đề nào thì tuyệt đối không viết cụm đó."
+          : " Vòng này chưa được phép kết thúc nên không viết cụm [ĐỒNG Ý].");
+    }
+    return base + history + RULES + "\n\n" + task;
+  }
+
+  function buildFinalPrompt(problem, transcript) {
+    return "Hai chuyên gia AI vừa trao đổi để giải quyết vấn đề của người dùng.\n\n" +
+      "VẤN ĐỀ:\n" + problem + "\n\nCUỘC TRAO ĐỔI:\n" + transcriptText(transcript) +
+      "\n\n" + RULES + "\n\nBây giờ bạn là người tổng hợp. Viết KẾT LUẬN CUỐI CÙNG gửi trực tiếp cho người dùng: giải pháp tốt nhất sau khi cân nhắc mọi phản biện (chọn bên đúng khi hai bên bất đồng và nói ngắn gọn vì sao), các bước cụ thể cần làm theo thứ tự, và những rủi ro hoặc điều cần kiểm tra thêm. " +
+      "Tự kiểm tra lại lần cuối trước khi viết. Nếu hai bên chưa đồng thuận hoặc lượt cuối của AI A chưa được AI B kiểm tra, hãy nói rõ điểm nào còn chưa chắc. Có thể dài khoảng 300 đến 400 từ.";
+  }
+
+  // ---------- Gọi Claude ----------
+  async function ask(prompt, bodyEl) {
+    var res = await sample(prompt, {
+      cache: false,
+      modelTier: "complex",
+      signal: ctl.signal,
+      onText: function (e) { if (bodyEl) bodyEl.textContent = clean(e.text) || WAIT; }
+    });
+    return { text: clean(res.text), agreed: /\[ĐỒNG Ý\]/i.test(res.text) };
+  }
+
+  function parseJson(text) {
+    var t = String(text || "").replace(/```json|```/gi, "").trim();
+    var a = t.indexOf("{"), b = t.lastIndexOf("}");
+    if (a < 0 || b <= a) return null;
+    try { return JSON.parse(t.slice(a, b + 1)); } catch (e) { return null; }
+  }
+
+  function normalizeQ(q) {
+    if (typeof q === "string") q = { q: q };
+    if (!q || typeof q.q !== "string") return null;
+    var text = q.q.trim();
+    if (text.length < 4) return null;
+    return { q: text, hint: typeof q.hint === "string" ? q.hint.trim() : "" };
+  }
+
+  // ---------- Bước 1: hỏi thêm ----------
+  async function analyze() {
+    var p = problemEl.value.trim();
+    if (!p) { setStatus("Hãy nhập vấn đề cần giải quyết.", true); problemEl.focus(); return; }
+    ctl = new AbortController();
+    setBusy(true);
+    setStatus("Claude đang đọc kỹ vấn đề để xem còn thiếu thông tin gì, có thể mất khoảng 1 phút...");
+    var startNow = false;
+    try {
+      var res = await sample(buildClarifyPrompt(p), { cache: false, modelTier: "complex", signal: ctl.signal });
+      var data = parseJson(res.text);
+      if (!data) {
+        setStatus("Không tạo được câu hỏi thêm. Bạn bấm Phân tích lại hoặc Chạy luôn.", true);
+      } else {
+        summaryText = typeof data.summary === "string" ? data.summary.trim() : "";
+        var qs = (Array.isArray(data.questions) ? data.questions : []).map(normalizeQ).filter(Boolean).slice(0, 5);
+        if (!qs.length) {
+          startNow = true;
+        } else {
+          renderQuestions(qs);
+          inputPanel.hidden = true;
+          qPanel.hidden = false;
+          setStatus("Trả lời các câu hỏi trên (câu nào chưa biết thì bỏ trống), rồi bấm Bắt đầu thảo luận.");
+        }
+      }
+    } catch (e) {
+      if (e && e.code === "cancelled") setStatus("Đã dừng.");
+      else setStatus(ERR[e && e.code] || ERR.upstream_error, true);
+    } finally {
+      setBusy(false);
+    }
+    if (startNow) startDiscussion(composeProblem(p, []), "Vấn đề đã đủ rõ, bắt đầu thảo luận ngay.");
+  }
+
+  function renderQuestions(qs) {
+    questionsEl.textContent = "";
+    qFields = [];
+    understoodEl.textContent = "";
+    if (summaryText) {
+      var b = document.createElement("b");
+      b.textContent = "Claude hiểu vấn đề của bạn như sau";
+      var s = document.createElement("span");
+      s.textContent = summaryText;
+      understoodEl.appendChild(b);
+      understoodEl.appendChild(s);
+      understoodEl.hidden = false;
+    } else {
+      understoodEl.hidden = true;
+    }
+    qs.forEach(function (q, i) {
+      var wrap = document.createElement("div");
+      wrap.className = "qitem";
+      var lab = document.createElement("label");
+      lab.htmlFor = "q" + i;
+      lab.textContent = q.q;
+      var ta = document.createElement("textarea");
+      ta.id = "q" + i;
+      ta.placeholder = q.hint ? "Ví dụ: " + q.hint : "";
+      wrap.appendChild(lab);
+      wrap.appendChild(ta);
+      questionsEl.appendChild(wrap);
+      qFields.push({ q: q.q, ta: ta });
+    });
+  }
+
+  function composeProblem(base, fields) {
+    var parts = [base.trim()];
+    if (summaryText) parts.push("Cách hiểu vấn đề (do trợ lý phân tích): " + summaryText);
+    var answered = [], unanswered = [];
+    fields.forEach(function (f) {
+      var a = f.ta.value.trim();
+      if (a) answered.push("- " + f.q + "\n  Trả lời: " + a);
+      else unanswered.push("- " + f.q);
+    });
+    if (answered.length) parts.push("Thông tin bổ sung do người dùng cung cấp:\n" + answered.join("\n"));
+    if (unanswered.length) parts.push("Người dùng chưa trả lời các câu sau, hãy tự chọn giả định hợp lý nhất và nói rõ giả định đó:\n" + unanswered.join("\n"));
+    return parts.join("\n\n");
+  }
+
+  function goDiscuss() {
+    startDiscussion(composeProblem(problemEl.value, qFields), "");
+  }
+
+  // ---------- Bước 2: thảo luận đến khi đồng thuận ----------
+  function startDiscussion(problemText, note) {
+    S = { problem: problemText, transcript: [], concluded: false };
+    inputPanel.hidden = true;
+    qPanel.hidden = true;
+    pauseBar.hidden = true;
+    doneBar.hidden = true;
+    logEl.textContent = "";
+    addMsg("problem", "Vấn đề đang giải quyết", problemText);
+    if (note) addNote(note);
+    runTurns(INITIAL_TURNS);
+  }
+
+  async function runTurns(maxTurns) {
+    ctl = new AbortController();
+    setBusy(true);
+    pauseBar.hidden = true;
+    doneBar.hidden = true;
+    var agreed = false, done = 0, current = null, lastRound = 1;
+    try {
+      while (done < maxTurns) {
+        var n = S.transcript.length;
+        var who = whoOf(n), round = roundOf(n);
+        lastRound = round;
+        setStatus("Vòng " + round + ": " + NAMES[who] + " đang suy nghĩ sâu, có thể mất 1 đến 2 phút...");
+        current = addMsg(who === "A" ? "a" : "b", "Vòng " + round + ", " + NAMES[who]);
+        var allowAgree = who === "B" && round >= MIN_ROUND_TO_AGREE;
+        var r = await ask(buildPrompt(who, S.problem, S.transcript, round, allowAgree), current.body);
+        current.body.textContent = r.text;
+        S.transcript.push({ who: who, text: r.text, round: round });
+        current = null;
+        done++;
+        if (allowAgree && r.agreed) { agreed = true; break; }
+      }
+      if (agreed) {
+        addNote("Hai AI đã đồng thuận sau " + lastRound + " vòng.");
+        await doConclude();
+      } else {
+        addNote("Chưa đồng thuận sau " + lastRound + " vòng. Bạn có thể cho thảo luận tiếp hoặc kết luận ngay.");
+        setStatus("Tạm dừng, chờ bạn chọn.");
+        showPause();
+      }
+    } catch (e) {
+      handleFail(e, current, false);
+      showPause();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function doConclude() {
+    setStatus("Đang viết kết luận cuối cùng, có thể mất 1 đến 2 phút...");
+    var m = addMsg("final", "Kết luận cuối cùng");
+    try {
+      var r = await ask(buildFinalPrompt(S.problem, S.transcript), m.body);
+      m.body.textContent = r.text;
+      S.concluded = true;
+      pauseBar.hidden = true;
+      doneBar.hidden = false;
+      setStatus("Hoàn tất.");
+    } catch (e) {
+      handleFail(e, m, true);
+      showPause();
+    }
+  }
+
+  async function concludeNow() {
+    ctl = new AbortController();
+    setBusy(true);
+    pauseBar.hidden = true;
+    try { await doConclude(); } finally { setBusy(false); }
+  }
+
+  function backToInput() {
+    qPanel.hidden = true;
+    inputPanel.hidden = false;
+    setStatus("Sẵn sàng.");
+  }
+
+  function resetAll() {
+    S = { problem: "", transcript: [], concluded: false };
+    logEl.textContent = "";
+    problemEl.value = "";
+    qFields = [];
+    questionsEl.textContent = "";
+    pauseBar.hidden = true;
+    doneBar.hidden = true;
+    qPanel.hidden = true;
+    inputPanel.hidden = false;
+    setStatus("Sẵn sàng.");
+    problemEl.focus();
+  }
+
+  analyzeBtn.addEventListener("click", analyze);
+  skipBtn.addEventListener("click", function () {
+    var p = problemEl.value.trim();
+    if (!p) { setStatus("Hãy nhập vấn đề cần giải quyết.", true); problemEl.focus(); return; }
+    summaryText = "";
+    startDiscussion(p, "");
+  });
+  goBtn.addEventListener("click", goDiscuss);
+  backBtn.addEventListener("click", backToInput);
+  stopBtn.addEventListener("click", function () { if (ctl) ctl.abort(); });
+  moreBtn.addEventListener("click", function () { runTurns(MORE_TURNS); });
+  concludeBtn.addEventListener("click", concludeNow);
+  resetBtn.addEventListener("click", resetAll);
+
+  (async function init() {
+    try {
+      sample = window.claude ? await window.claude.use("sample") : null;
+    } catch (e) { sample = null; }
+    if (sample) {
+      analyzeBtn.disabled = false;
+      skipBtn.disabled = false;
+      setStatus("Sẵn sàng. Lần đầu bạn sẽ được hỏi cho phép dùng Claude.");
+    } else {
+      setStatus("Trang này cần được mở trong ứng dụng hoặc trang Claude để gọi AI.", true);
+    }
+  })();
+})();
+</script>
+</body>
+</html>
